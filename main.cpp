@@ -1,4 +1,6 @@
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include "Types.h"
 #include "CSVReader/CSVReader.h"
 #include "EventClock/EventClock.hpp"
@@ -6,40 +8,42 @@
 using namespace std;
 
 int main(int argc, char **argv) {
-    if(argc != 3) {
-        printf("Argument Error: %s <dataset> <distance threshold>\n", argv[0]);
+    if(argc != 2) {
+        printf("Argument Error: %s <dataset>\n", argv[0]);
         return 0;
     }
     string dataset = argv[1];
-    double distanceThreshold = atof(argv[2]);
 
-    CSVReader csvReader(dataset);
-
-    std::vector<InstanceType> instances;
-    while(csvReader.hasNext()) {
-        auto line = csvReader.getNextRecord();
-        FeatureType feature = line[0];
-        InstanceIdType id = line[1];
-        double x = stod(line[2]);
-        double y = stod(line[3]);
-
-        instances.push_back({feature, id, {x, y}});
+    std::vector<EdgeType> edges;
+    unsigned int N = 0, M = 0;
+    ifstream ifs(dataset);
+    for(string line; getline(ifs, line);) {
+        stringstream ss(line);
+        if(ss.peek() == '%') continue;
+        if(N == 0 && M == 0) {
+            ss >> N >> N >> M;
+        } else {
+            VertexType u, v;
+            ss >> u >> v;
+            edges.push_back({u, v});
+        }
     }
 
     EventClock<TimeTicks::Microseconds> clock;
 
     clock.startClock("bk");
-    BK bk(instances, distanceThreshold);
+    BK bk(N, edges);
     auto cliques = bk.execute();
     clock.stopClock("bk");
 
     for(auto &clique : cliques) {
-        for(auto &instance : clique) {
-            cout << instance.first << '.' << instance.second << ' ';
+        for(auto &vertex : clique) {
+            cout << vertex << ' ';
         }
         cout << endl;
     }
 
+    cout << "Size of result is " << cliques.size() << endl;
     clock.printEvent("bk");
     return 0;
 }

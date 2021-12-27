@@ -4,20 +4,8 @@
 #include <iostream>
 #include <vector>
 
-using FeatureType = std::string;
-using InstanceIdType = std::string;
-using LocationType = std::pair<double, double>;
-struct InstanceType {
-    FeatureType feature;
-    InstanceIdType id;
-    LocationType location;
-};
-
-using InstanceNameType = std::pair<FeatureType, InstanceIdType>;
-
-using InstanceNameType = std::pair<FeatureType, InstanceIdType>;
-
-using PatternType = std::vector<FeatureType>;
-using CliqueType = std::vector<InstanceNameType>;
+using VertexType = unsigned int;
+using EdgeType = std::pair<VertexType, VertexType>;
+using CliqueType = std::vector<VertexType>;;
 
 #endif //BK_CLASSIC_TYPES_H

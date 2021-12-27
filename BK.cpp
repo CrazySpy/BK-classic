@@ -3,48 +3,30 @@
 //
 
 #include <algorithm>
+#include <numeric>
 #include "BK.h"
-#include "Utils.h"
+#include "Types.h"
 
-BK::BK(const std::vector<InstanceType> &instances, double distanceThreshold)
-:_distanceThreshold(distanceThreshold) {
-    for(auto &instance: instances) {
-        auto instanceName = toInstanceName(instance);
-        _instances.push_back(instanceName);
-        _locations[instanceName] = instance.location;
-    }
-    _generateRelations();
-}
-
-void BK::_generateRelations() {
-    for(int i = 0; i < _instances.size(); ++i) {
-        auto &instanceName1 = _instances[i];
-        auto &location1 = _locations[instanceName1];
-        for(int j = 0; j < _instances.size(); ++j) {
-            auto &instanceName2 = _instances[j];
-            if(instanceName1 == instanceName2) continue;
-
-            auto &location2 = _locations[instanceName2];
-            double distance = _distance->calculate(location1, location2);
-
-            if(distance <= _distanceThreshold) {
-                _relations[instanceName1].push_back(instanceName2);
-            }
-        }
+BK::BK(unsigned int vertexNum, const std::vector<EdgeType> &edges)
+        :_vertexNum(vertexNum) {
+    for(auto &edge : edges) {
+        auto &u = edge.first, &v = edge.second;
+        _edges[u].push_back(v);
+        _edges[v].push_back(u);
     }
 }
 
-InstanceNameType BK::_selectPivot(const std::vector<InstanceNameType> &P,
-                                  const std::vector<InstanceNameType> &X) {
-    std::vector<InstanceNameType> unionSet;
+VertexType BK::_selectPivot(const std::vector<VertexType> &P,
+                            const std::vector<VertexType> &X) {
+    std::vector<VertexType> unionSet;
     std::set_union(P.begin(), P.end(), X.begin(), X.end(), std::back_inserter(unionSet));
 
-    InstanceNameType bestInstance = unionSet[0];
+    VertexType bestInstance = unionSet[0];
     unsigned int instanceNeighbourNum = 0;
     for(auto &instanceName : unionSet) {
-        if(instanceNeighbourNum <= _relations[instanceName].size()) {
+        if(instanceNeighbourNum <= _edges[instanceName].size()) {
             bestInstance = instanceName;
-            instanceNeighbourNum = _relations[instanceName].size();
+            instanceNeighbourNum = _edges[instanceName].size();
         }
     }
 
@@ -52,15 +34,16 @@ InstanceNameType BK::_selectPivot(const std::vector<InstanceNameType> &P,
 }
 
 void BK::_executeBK() {
-    auto R = std::vector<InstanceNameType>();
-    auto P = _instances;
-    auto X = std::vector<InstanceNameType>();
+    auto R = std::vector<VertexType>();
+    auto P = std::vector<VertexType>(_vertexNum, 1);
+    std::partial_sum(P.begin(), P.end(), P.begin());
+    auto X = std::vector<VertexType>();
     _executeBKRecursive(R,P,X);
 }
 
-void BK::_executeBKRecursive(std::vector<InstanceNameType> &R,
-                      std::vector<InstanceNameType> &P,
-                      std::vector<InstanceNameType> &X) {
+void BK::_executeBKRecursive(std::vector<VertexType> &R,
+                             std::vector<VertexType> &P,
+                             std::vector<VertexType> &X) {
     if(P.empty()) {
         if(X.empty()) {
             _cliques.push_back(R);
@@ -69,17 +52,17 @@ void BK::_executeBKRecursive(std::vector<InstanceNameType> &R,
     }
 
     auto pivot = _selectPivot(P, X);
-    auto &pivotNeighbour = _relations[pivot];
-    std::vector<InstanceNameType> nonPivotNeighbourP;
+    auto &pivotNeighbour = _edges[pivot];
+    std::vector<VertexType> nonPivotNeighbourP;
     // The candidate should select from the pivot's non-neighbour.
     std::set_difference(P.begin(), P.end(),
                         pivotNeighbour.begin(), pivotNeighbour.end(),
                         std::back_inserter(nonPivotNeighbourP));
 
     for(auto &candidateInstance : nonPivotNeighbourP) {
-        auto &candidateNeighbours = _relations[candidateInstance];
+        auto &candidateNeighbours = _edges[candidateInstance];
 
-        std::vector<InstanceNameType> tmpR = R, tmpP, tmpX;
+        std::vector<VertexType> tmpR = R, tmpP, tmpX;
         // R = R ∪ candidate
         tmpR.push_back(candidateInstance);
         // P = P ∩ candidate
@@ -101,4 +84,3 @@ std::vector<CliqueType> BK::execute() {
     _executeBK();
     return _cliques;
 }
-

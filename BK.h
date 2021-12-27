@@ -9,34 +9,25 @@
 #include <map>
 #include <set>
 #include "Types.h"
-#include "DistanceStrategy.h"
-#include "EuclidDistanceStrategy.h"
 
 class BK {
 private:
-    std::vector<InstanceNameType> _instances;
-    std::map<InstanceNameType, LocationType> _locations;
+    unsigned int _vertexNum;
 
-    double _distanceThreshold;
+    std::map<unsigned int, std::vector<VertexType>> _edges;
 
-    std::map<InstanceNameType, std::vector<InstanceNameType>> _relations;
-
-    DistanceStrategy *_distance = new EuclidDistanceStrategy();
-
-    std::vector<std::vector<InstanceNameType>> _cliques;
+    std::vector<std::vector<VertexType>> _cliques;
 
 public:
-    BK(const std::vector<InstanceType> &instances, double distanceThreshold);
+    BK(unsigned int vertexNum, const std::vector<EdgeType> &edges);
     std::vector<CliqueType> execute();
 private:
-    void _generateRelations();
-    InstanceNameType _selectPivot(const std::vector<InstanceNameType> &P,
-                                  const std::vector<InstanceNameType> &X);
+    VertexType _selectPivot(const std::vector<VertexType> &P,
+                            const std::vector<VertexType> &X);
     void _executeBK();
-    void _executeBKRecursive(std::vector<InstanceNameType> &R,
-                      std::vector<InstanceNameType> &P,
-                      std::vector<InstanceNameType> &X);
+    void _executeBKRecursive(std::vector<VertexType> &R,
+                             std::vector<VertexType> &P,
+                             std::vector<VertexType> &X);
 };
-
 
 #endif //BK_CLASSIC_BK_H
