@@ -16,7 +16,7 @@ private:
 
     std::map<unsigned int, std::vector<VertexType>> _edges;
 
-    std::vector<std::vector<VertexType>> _cliques;
+    std::vector<CliqueType> _cliques;
 
 public:
     BK(unsigned int vertexNum, const std::vector<EdgeType> &edges);

@@ -1,6 +1,3 @@
 [submodule "EventClock"]
 	path = EventClock
 	url = git@github.com:CrazySpy/EventClock.git
-[submodule "CSVReader"]
-	path = CSVReader
-	url = git@github.com:CrazySpy/CSVReader.git

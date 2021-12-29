@@ -6,6 +6,7 @@
 #include <numeric>
 #include "BK.h"
 #include "Types.h"
+#include "Utils.h"
 
 BK::BK(unsigned int vertexNum, const std::vector<EdgeType> &edges)
         :_vertexNum(vertexNum) {
@@ -38,7 +39,7 @@ void BK::_executeBK() {
     auto P = std::vector<VertexType>(_vertexNum, 1);
     std::partial_sum(P.begin(), P.end(), P.begin());
     auto X = std::vector<VertexType>();
-    _executeBKRecursive(R,P,X);
+    _executeBKRecursive(R, P, X);
 }
 
 void BK::_executeBKRecursive(std::vector<VertexType> &R,
@@ -60,6 +61,11 @@ void BK::_executeBKRecursive(std::vector<VertexType> &R,
                         std::back_inserter(nonPivotNeighbourP));
 
     for(auto &candidateInstance : nonPivotNeighbourP) {
+        /*
+        if (candidateInstance == 36 && X == std::vector<VertexType>{34, 35}) {
+            std::cout << "abc" << std::endl;
+        }
+         */
         auto &candidateNeighbours = _edges[candidateInstance];
 
         std::vector<VertexType> tmpR = R, tmpP, tmpX;
@@ -76,7 +82,7 @@ void BK::_executeBKRecursive(std::vector<VertexType> &R,
 
         P.erase(std::find(P.begin(), P.end(), candidateInstance));
 
-        X.push_back(candidateInstance);
+        orderedInsert(X, candidateInstance);
     }
 }
 
